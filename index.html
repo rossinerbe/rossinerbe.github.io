@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0102)file:///C:/Users/rossi/AppData/Local/Temp/Rtmp46zvdb/preview-275025a41135.dir/ATACCoGAPS_Tutorial.html -->
+<!-- saved from url=(0102)file:///C:/Users/rossi/AppData/Local/Temp/RtmpIhbQJh/preview-37983e4e5eab.dir/ATACCoGAPS_Tutorial.html -->
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 
@@ -472,15 +472,17 @@ devtools::install_github(<span class="hljs-string">"FertigLab/ATACCoGAPS"</span>
 data(<span class="hljs-string">"schepCelltypes"</span>)
 data(<span class="hljs-string">"schepFilteredPeaks"</span>)</code></pre>
 <p>We use these data to set the hyperparameters of the CoGAPS algorithm. Here we tell CoGAPS to find 7 patterns in 10000 iterations of the algorithm. We use the singleCell and sparseOptimization methods as our data are sparse single-cell data. We run the algorithm distributed across the genome since we have more genomic features than cells (if it was the opposite we would set the distributed pattern to “single-cell”). We then input the peak and cell type information to be returned as part of our result object. Finally, we set distributed parameters so the algorithm will run in parallel across 9 cores.</p>
-<pre class="r"><code class="hljs">params &lt;- CogapsParams(nPatterns=<span class="hljs-number">7</span>, nIterations=<span class="hljs-number">10000</span>, seed=<span class="hljs-number">42</span>, singleCell=<span class="hljs-literal">TRUE</span>, sparseOptimization=<span class="hljs-literal">TRUE</span>, distributed=<span class="hljs-string">"genome-wide"</span>, geneNames=schepFilteredPeaks, sampleNames=as.character(schepCelltypes))
-params &lt;- setDistributedParams(params, nSets=<span class="hljs-number">9</span>)</code></pre>
+<pre class="r"><code class="hljs">params &lt;- CogapsParams(nPatterns=<span class="hljs-number">7</span>, nIterations=<span class="hljs-number">10000</span>, seed=<span class="hljs-number">42</span>, singleCell=<span class="hljs-literal">TRUE</span>, sparseOptimization=<span class="hljs-literal">TRUE</span>, distributed=<span class="hljs-string">"genome-wide"</span>, geneNames=schepFilteredPeaks, sampleNames=as.character(schepCelltypes))</code></pre>
+<pre><code class="hljs">## Warning in CogapsParams(nPatterns = 7, nIterations = 10000, seed = 42,
+## singleCell = TRUE, : singleCell has been deprecated, this parameter will be
+## ignored</code></pre>
+<pre class="r"><code class="hljs">params &lt;- setDistributedParams(params, nSets=<span class="hljs-number">9</span>)</code></pre>
 <pre><code class="hljs">## setting distributed parameters - call this again if you change nPatterns</code></pre>
 <pre class="r"><code class="hljs">params</code></pre>
 <pre><code class="hljs">## -- Standard Parameters --
 ## nPatterns            7 
 ## nIterations          10000 
 ## seed                 42 
-## singleCell           TRUE 
 ## sparseOptimization   TRUE 
 ## distributed          genome-wide 
 ## 
@@ -582,17 +584,17 @@ heatmapPatternMatrix(schepCogapsResult, as.factor(cellClasses))</code></pre>
 <p>The differentially accessible peaks we find distinguish the cell types we see in the pattern Matrix. In patterns 6 and 7 it seems to distinguish those cell types even better than the pattern Matrix does. This visualization allows us to see the biological differences between cell types CoGAPS is identifying.</p>
 <div id="pathway-based-analysis" class="section level2">
 <h2>Pathway Based Analysis</h2>
-<p>To make use of this differential accessibility data, one option is to try to find genes that fall within these peaks and determine whether the accessibility of certain groups of genes suggests differential pathway activation. We choose peaks based on a threshold for the PatternMarker score of the peaks. Results are quite robust to changing the scoreThreshold, though we recommend generally using thresholds that return at least 100 peaks per pattern.</p>
+<p>To make use of this differential accessibility data, one option is to try to find genes that fall within these peaks and determine whether the accessibility of certain groups of genes suggests differential pathway activation.</p>
 <pre class="r"><code class="hljs">data(<span class="hljs-string">"schepGranges"</span>)
 
 <span class="hljs-comment">#loading TxDb of human genes</span>
 <span class="hljs-keyword">library</span>(Homo.sapiens)
 
 <span class="hljs-comment">#find genes known to fall within thresholded patternMarker peaks for each pattern</span>
-genes &lt;- genePatternMatch(cogapsResult = schepCogapsResult, generanges = schepGranges, genome = Homo.sapiens, scoreThreshold = <span class="hljs-number">0.05</span>)</code></pre>
+genes &lt;- genePatternMatch(cogapsResult = schepCogapsResult, generanges = schepGranges, genome = Homo.sapiens)</code></pre>
 <pre><code class="hljs">## [1] Number of peaks used for each pattern:
 ## Pattern 1 Pattern 2 Pattern 3 Pattern 4 Pattern 5 Pattern 6 Pattern 7 
-##       701       570      2843      1883      1065       642       908</code></pre>
+##      7886      9752     12973      9115     10577     29088     10909</code></pre>
 <pre class="r"><code class="hljs"><span class="hljs-comment">#download hallmark pathways using msigdbr</span>
 <span class="hljs-keyword">library</span>(dplyr)</code></pre>
 <pre class="r"><code class="hljs">pathways &lt;- msigdbr::msigdbr(species = <span class="hljs-string">"Homo sapiens"</span>, category =
@@ -601,249 +603,227 @@ genes &lt;- genePatternMatch(cogapsResult = schepCogapsResult, generanges = sche
 <span class="hljs-comment">#match these pattern Gene sets to hallmark pathways, using an adjusted p-value threshold of 0.001.</span>
 matchedPathways &lt;- pathwayMatch(gene_list = genes, pathways = pathways, p_threshold = <span class="hljs-number">0.001</span>)
 
-lapply(matchedPathways, <span class="hljs-keyword">function</span>(x) {x[c(<span class="hljs-number">1</span>,<span class="hljs-number">3</span>)]})</code></pre>
+lapply(matchedPathways, <span class="hljs-keyword">function</span>(x) {x[<span class="hljs-number">4</span>]})</code></pre>
 <pre><code class="hljs">## [[1]]
-## [[1]]$gene_overlaps
-## list()
-## 
-## [[1]]$pathway_names
-## character(0)
+## [[1]]$summaryTable
+##                            pathway       PValue
+## 5         HALLMARK_HEME_METABOLISM 1.348010e-16
+## 6         HALLMARK_MITOTIC_SPINDLE 8.585937e-07
+## 8 HALLMARK_TNFA_SIGNALING_VIA_NFKB 3.155078e-05
+## 3               HALLMARK_APOPTOSIS 4.977247e-05
+## 1            HALLMARK_ADIPOGENESIS 5.795468e-05
+## 4 HALLMARK_ESTROGEN_RESPONSE_EARLY 5.795468e-05
+## 7      HALLMARK_TGF_BETA_SIGNALING 7.693160e-05
+## 2         HALLMARK_APICAL_JUNCTION 1.043982e-04
 ## 
 ## 
 ## [[2]]
-## [[2]]$gene_overlaps
-## list()
-## 
-## [[2]]$pathway_names
-## character(0)
+## [[2]]$summaryTable
+##                             pathway       PValue
+## 12          HALLMARK_UV_RESPONSE_DN 5.798672e-12
+## 6      HALLMARK_IL2_STAT5_SIGNALING 9.539725e-12
+## 4          HALLMARK_HEME_METABOLISM 6.511603e-11
+## 9         HALLMARK_MTORC1_SIGNALING 1.284655e-08
+## 5                  HALLMARK_HYPOXIA 2.936508e-07
+## 8          HALLMARK_MITOTIC_SPINDLE 9.333264e-07
+## 1             HALLMARK_ADIPOGENESIS 2.501268e-06
+## 2        HALLMARK_ANDROGEN_RESPONSE 1.427122e-05
+## 11 HALLMARK_TNFA_SIGNALING_VIA_NFKB 1.789366e-05
+## 10       HALLMARK_PROTEIN_SECRETION 1.821590e-05
+## 7    HALLMARK_INFLAMMATORY_RESPONSE 6.032164e-05
+## 3  HALLMARK_ESTROGEN_RESPONSE_EARLY 1.076035e-04
 ## 
 ## 
 ## [[3]]
-## [[3]]$gene_overlaps
-## [[3]]$gene_overlaps[[1]]
-## GeneOverlap object:
-## listA size=3149
-## listB size=200
-## Intersection size=58
-## Overlapping p-value=1.1e-08
-## Jaccard Index=0.0
-## 
-## [[3]]$gene_overlaps[[2]]
-## GeneOverlap object:
-## listA size=3149
-## listB size=144
-## Intersection size=51
-## Overlapping p-value=3.7e-11
-## Jaccard Index=0.0
-## 
-## 
-## [[3]]$pathway_names
-## [1] "HALLMARK_IL2_STAT5_SIGNALING" "HALLMARK_UV_RESPONSE_DN"     
+## [[3]]$summaryTable
+##                               pathway       PValue
+## 15   HALLMARK_TNFA_SIGNALING_VIA_NFKB 3.868026e-18
+## 7        HALLMARK_IL2_STAT5_SIGNALING 5.130824e-16
+## 16            HALLMARK_UV_RESPONSE_DN 4.574162e-14
+## 9      HALLMARK_INFLAMMATORY_RESPONSE 8.532207e-12
+## 11         HALLMARK_KRAS_SIGNALING_UP 2.259654e-11
+## 1        HALLMARK_ALLOGRAFT_REJECTION 1.489475e-10
+## 10 HALLMARK_INTERFERON_GAMMA_RESPONSE 1.489475e-10
+## 3                  HALLMARK_APOPTOSIS 3.766399e-08
+## 8    HALLMARK_IL6_JAK_STAT3_SIGNALING 4.507967e-08
+## 5    HALLMARK_ESTROGEN_RESPONSE_EARLY 4.381401e-06
+## 12           HALLMARK_MITOTIC_SPINDLE 1.195938e-05
+## 2            HALLMARK_APICAL_JUNCTION 1.587116e-05
+## 14        HALLMARK_TGF_BETA_SIGNALING 5.198330e-05
+## 13          HALLMARK_MTORC1_SIGNALING 5.321764e-05
+## 4                 HALLMARK_COMPLEMENT 9.468292e-05
+## 6                    HALLMARK_HYPOXIA 2.830334e-04
 ## 
 ## 
 ## [[4]]
-## [[4]]$gene_overlaps
-## [[4]]$gene_overlaps[[1]]
-## GeneOverlap object:
-## listA size=2376
-## listB size=200
-## Intersection size=85
-## Overlapping p-value=2.4e-32
-## Jaccard Index=0.0
-## 
-## [[4]]$gene_overlaps[[2]]
-## GeneOverlap object:
-## listA size=2376
-## listB size=200
-## Intersection size=47
-## Overlapping p-value=5.3e-08
-## Jaccard Index=0.0
-## 
-## [[4]]$gene_overlaps[[3]]
-## GeneOverlap object:
-## listA size=2376
-## listB size=200
-## Intersection size=51
-## Overlapping p-value=7.4e-10
-## Jaccard Index=0.0
-## 
-## [[4]]$gene_overlaps[[4]]
-## GeneOverlap object:
-## listA size=2376
-## listB size=200
-## Intersection size=39
-## Overlapping p-value=7.3e-05
-## Jaccard Index=0.0
-## 
-## [[4]]$gene_overlaps[[5]]
-## GeneOverlap object:
-## listA size=2376
-## listB size=200
-## Intersection size=43
-## Overlapping p-value=2.5e-06
-## Jaccard Index=0.0
-## 
-## [[4]]$gene_overlaps[[6]]
-## GeneOverlap object:
-## listA size=2376
-## listB size=144
-## Intersection size=52
-## Overlapping p-value=1.2e-16
-## Jaccard Index=0.0
-## 
-## 
-## [[4]]$pathway_names
-## [1] "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION"
-## [2] "HALLMARK_ESTROGEN_RESPONSE_EARLY"          
-## [3] "HALLMARK_HYPOXIA"                          
-## [4] "HALLMARK_MYOGENESIS"                       
-## [5] "HALLMARK_TNFA_SIGNALING_VIA_NFKB"          
-## [6] "HALLMARK_UV_RESPONSE_DN"                   
+## [[4]]$summaryTable
+##                                       pathway       PValue
+## 6  HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION 8.529163e-36
+## 16                    HALLMARK_UV_RESPONSE_DN 1.051232e-25
+## 15           HALLMARK_TNFA_SIGNALING_VIA_NFKB 3.232202e-15
+## 9                HALLMARK_IL2_STAT5_SIGNALING 3.003042e-14
+## 8                            HALLMARK_HYPOXIA 2.573234e-13
+## 7            HALLMARK_ESTROGEN_RESPONSE_EARLY 7.308530e-13
+## 3                    HALLMARK_APICAL_JUNCTION 2.523192e-10
+## 13                        HALLMARK_MYOGENESIS 3.588584e-09
+## 4                          HALLMARK_APOPTOSIS 8.742780e-09
+## 12                   HALLMARK_MITOTIC_SPINDLE 1.372606e-08
+## 5                         HALLMARK_COMPLEMENT 8.851363e-07
+## 10             HALLMARK_INFLAMMATORY_RESPONSE 8.851363e-07
+## 2                       HALLMARK_ANGIOGENESIS 2.587624e-06
+## 11                 HALLMARK_KRAS_SIGNALING_UP 6.999488e-06
+## 14                HALLMARK_TGF_BETA_SIGNALING 5.751367e-05
+## 1                  HALLMARK_ANDROGEN_RESPONSE 1.415445e-04
 ## 
 ## 
 ## [[5]]
-## [[5]]$gene_overlaps
-## [[5]]$gene_overlaps[[1]]
-## GeneOverlap object:
-## listA size=1686
-## listB size=200
-## Intersection size=31
-## Overlapping p-value=5.9e-05
-## Jaccard Index=0.0
-## 
-## [[5]]$gene_overlaps[[2]]
-## GeneOverlap object:
-## listA size=1686
-## listB size=200
-## Intersection size=41
-## Overlapping p-value=1.5e-09
-## Jaccard Index=0.0
-## 
-## [[5]]$gene_overlaps[[3]]
-## GeneOverlap object:
-## listA size=1686
-## listB size=144
-## Intersection size=25
-## Overlapping p-value=4.6e-05
-## Jaccard Index=0.0
-## 
-## 
-## [[5]]$pathway_names
-## [1] "HALLMARK_APICAL_JUNCTION"         "HALLMARK_ESTROGEN_RESPONSE_EARLY"
-## [3] "HALLMARK_UV_RESPONSE_DN"         
+## [[5]]$summaryTable
+##                                       pathway       PValue
+## 1                    HALLMARK_APICAL_JUNCTION 1.388378e-13
+## 2  HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION 3.301153e-12
+## 3            HALLMARK_ESTROGEN_RESPONSE_EARLY 2.436182e-11
+## 10                    HALLMARK_UV_RESPONSE_DN 3.808226e-10
+## 9            HALLMARK_TNFA_SIGNALING_VIA_NFKB 5.766965e-09
+## 6                HALLMARK_IL2_STAT5_SIGNALING 3.051722e-07
+## 8                         HALLMARK_MYOGENESIS 1.291245e-06
+## 7                  HALLMARK_KRAS_SIGNALING_UP 2.576170e-06
+## 5                            HALLMARK_HYPOXIA 5.036962e-06
+## 4                 HALLMARK_HEDGEHOG_SIGNALING 1.402250e-04
 ## 
 ## 
 ## [[6]]
-## [[6]]$gene_overlaps
-## [[6]]$gene_overlaps[[1]]
-## GeneOverlap object:
-## listA size=1006
-## listB size=200
-## Intersection size=24
-## Overlapping p-value=7.6e-06
-## Jaccard Index=0.0
-## 
-## 
-## [[6]]$pathway_names
-## [1] "HALLMARK_HYPOXIA"
+## [[6]]$summaryTable
+##                                       pathway       PValue
+## 20           HALLMARK_TNFA_SIGNALING_VIA_NFKB 3.085790e-13
+## 11             HALLMARK_INFLAMMATORY_RESPONSE 5.627103e-10
+## 10               HALLMARK_IL2_STAT5_SIGNALING 1.693213e-09
+## 13                   HALLMARK_MITOTIC_SPINDLE 2.173996e-09
+## 12                 HALLMARK_KRAS_SIGNALING_UP 3.659294e-08
+## 14                  HALLMARK_MTORC1_SIGNALING 9.468201e-08
+## 21                    HALLMARK_UV_RESPONSE_DN 1.216962e-07
+## 5            HALLMARK_ESTROGEN_RESPONSE_EARLY 5.707008e-07
+## 6                     HALLMARK_G2M_CHECKPOINT 5.707008e-07
+## 19                HALLMARK_TGF_BETA_SIGNALING 1.275552e-06
+## 18           HALLMARK_PI3K_AKT_MTOR_SIGNALING 3.213048e-06
+## 1                       HALLMARK_ADIPOGENESIS 6.576505e-06
+## 4  HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION 6.576505e-06
+## 17                       HALLMARK_P53_PATHWAY 6.576505e-06
+## 3                        HALLMARK_E2F_TARGETS 5.713666e-05
+## 22        HALLMARK_WNT_BETA_CATENIN_SIGNALING 7.632301e-05
+## 15                    HALLMARK_MYC_TARGETS_V1 1.106565e-04
+## 2                          HALLMARK_APOPTOSIS 1.450926e-04
+## 7                         HALLMARK_GLYCOLYSIS 2.082222e-04
+## 9                            HALLMARK_HYPOXIA 2.082222e-04
+## 8                    HALLMARK_HEME_METABOLISM 3.809065e-04
+## 16                        HALLMARK_MYOGENESIS 3.809065e-04
 ## 
 ## 
 ## [[7]]
-## [[7]]$gene_overlaps
-## [[7]]$gene_overlaps[[1]]
-## GeneOverlap object:
-## listA size=1309
-## listB size=200
-## Intersection size=45
-## Overlapping p-value=1.2e-15
-## Jaccard Index=0.0
-## 
-## [[7]]$gene_overlaps[[2]]
-## GeneOverlap object:
-## listA size=1309
-## listB size=200
-## Intersection size=38
-## Overlapping p-value=4.6e-11
-## Jaccard Index=0.0
-## 
-## 
-## [[7]]$pathway_names
-## [1] "HALLMARK_INFLAMMATORY_RESPONSE"   "HALLMARK_TNFA_SIGNALING_VIA_NFKB"</code></pre>
+## [[7]]$summaryTable
+##                               pathway       PValue
+## 17   HALLMARK_TNFA_SIGNALING_VIA_NFKB 9.869770e-27
+## 10     HALLMARK_INFLAMMATORY_RESPONSE 4.117782e-22
+## 8        HALLMARK_IL2_STAT5_SIGNALING 1.122470e-09
+## 18            HALLMARK_UV_RESPONSE_DN 1.417200e-09
+## 11 HALLMARK_INTERFERON_GAMMA_RESPONSE 1.422270e-08
+## 7                    HALLMARK_HYPOXIA 3.184648e-08
+## 3                  HALLMARK_APOPTOSIS 9.020828e-08
+## 16        HALLMARK_TGF_BETA_SIGNALING 1.071393e-07
+## 12         HALLMARK_KRAS_SIGNALING_UP 1.503725e-07
+## 13           HALLMARK_MITOTIC_SPINDLE 4.678593e-07
+## 4                 HALLMARK_COMPLEMENT 6.558180e-07
+## 5    HALLMARK_ESTROGEN_RESPONSE_EARLY 6.558180e-07
+## 1        HALLMARK_ALLOGRAFT_REJECTION 1.329669e-06
+## 9    HALLMARK_IL6_JAK_STAT3_SIGNALING 2.381951e-06
+## 15               HALLMARK_P53_PATHWAY 5.153906e-06
+## 2          HALLMARK_ANDROGEN_RESPONSE 9.740774e-06
+## 19            HALLMARK_UV_RESPONSE_UP 5.921498e-05
+## 6     HALLMARK_ESTROGEN_RESPONSE_LATE 3.212447e-04
+## 14          HALLMARK_MTORC1_SIGNALING 3.212447e-04</code></pre>
 <p>Several patterns do not return Hallmark pathways at this level of significance, but those that do seem logical in the cell types those patterns differentiate.</p>
 <p>Of particular note, we find the Epithelial Mesenchymal Transition pathway to be strongly associated with Fibroblasts, which is known to be the classical wound healing pathway in Fibroblasts. Additionally, monocytes are most strongly associated with the Hallmark Inflammatory Response, as we would expect for inflammatory cells.</p>
-<p>We can alternatively perform enrichment for GO terms using the rGREAT package, which we employ via a wrapper function.</p>
-<pre class="r"><code class="hljs">GOterms &lt;- findGOEnrichment(schepCogapsResult, schepGranges, <span class="hljs-string">"hg19"</span>, scoreThreshold = <span class="hljs-number">0.05</span>)</code></pre>
-<pre><code class="hljs">## [1] Number of peaks used for each pattern:
-## Pattern 1 Pattern 2 Pattern 3 Pattern 4 Pattern 5 Pattern 6 Pattern 7 
-##       701       570      2843      1883      1065       642       908</code></pre>
-<pre class="r"><code class="hljs"><span class="hljs-comment">#top Embryonic Stem Cell pattern GO terms</span>
-GOterms[[<span class="hljs-number">5</span>]][<span class="hljs-number">1</span>:<span class="hljs-number">5</span>,]</code></pre>
-<pre><code class="hljs">##           ID                                  name Binom_Fold_Enrichment
-## 1 GO:0032879            regulation of localization              1.302578
-## 2 GO:0051049               regulation of transport              1.358982
-## 3 GO:0048731                    system development              1.184345
-## 4 GO:0044707 single-multicellular organism process              1.146918
-## 5 GO:0007275    multicellular organism development              1.159560
-##   Binom_Adjp_BH
-## 1  7.020022e-05
-## 2  2.943445e-04
-## 3  3.278584e-04
-## 4  6.117045e-04
-## 5  8.290584e-04</code></pre>
 </div>
 <div id="motiftranscription-factor-based-analysis" class="section level2">
 <h2>Motif/Transcription Factor Based Analysis</h2>
 <p>The other way we can use differential peak information is to match to DNA motifs and known Transcription Factor binding at those motifs.</p>
-<pre class="r"><code class="hljs">motifResults = simpleMotifTFMatch(cogapsResult = schepCogapsResult, generanges = schepGranges, organism = <span class="hljs-string">"Homo sapiens"</span>, genome = <span class="hljs-string">"hg19"</span>, scoreThreshold = <span class="hljs-number">0.05</span>, motifsPerRegion = <span class="hljs-number">1</span>)</code></pre>
+<pre class="r"><code class="hljs">motifResults = simpleMotifTFMatch(cogapsResult = schepCogapsResult, generanges = schepGranges, organism = <span class="hljs-string">"Homo sapiens"</span>, genome = <span class="hljs-string">"hg19"</span>, motifsPerRegion = <span class="hljs-number">1</span>)</code></pre>
 <pre><code class="hljs">## Registered S3 method overwritten by 'R.oo':
 ##   method        from       
 ##   throw.default R.methodsS3</code></pre>
 <pre><code class="hljs">## [1] Number of peaks used for each pattern:
 ## Pattern 1 Pattern 2 Pattern 3 Pattern 4 Pattern 5 Pattern 6 Pattern 7 
-##       701       570      2843      1883      1065       642       908</code></pre>
+##      7886      9752     12973      9115     10577     29088     10909</code></pre>
 <p>We can get a summary of TF binding, generally having more confidence in those TFs that have higher numbers of motifs at which the same TF could bind.</p>
 <pre class="r"><code class="hljs"><span class="hljs-comment">#showing motif results for monocytes</span>
 motifResults$tfMatchSummary[[<span class="hljs-number">7</span>]]</code></pre>
-<pre><code class="hljs">##       (Other)          IRF1        ZNF263          SPIC         FOXP1 
-##            96            86            54            52            50 
-##         MEF2C  STAT1::STAT2          SPI1         CEBPA        POU2F2 
-##            31            30            24            21            18 
-##         RREB1          CDX2     MAF::NFE2         PRDM1         STAT1 
-##            15            14            12            12            12 
-##         STAT3           JUN          EGR1         FOXA1         HNF4G 
-##            12            11            10             9             9 
-##   JUND(var.2)         FOXP2         NR2C2           TEF          DUX4 
-##             9             8             8             8             7 
-##         FOXB1         FOXC2         GRHL1         MEF2A          RELA 
-##             7             7             7             7             7 
-##         TBX15          ATF4         FOSL1         FOXH1    JUN(var.2) 
-##             7             6             6             6             6 
-##          NFE2         NFIL3         PROP1     BATF::JUN         ESRRB 
-##             6             6             6             5             5 
-##         GATA2          HSF4          IRF7          JUND         NHLH1 
-##             5             5             5             5             5 
-##       ONECUT3        POU4F1   RORA(var.2)         FOXO3        HOXB13 
-##             5             5             5             4             4 
-##         INSM1          IRF2          LEF1          MAFF          NFYB 
-##             4             4             4             4             4 
-##          PBX1         PLAG1        POU3F3           SRF    TAL1::TCF3 
-##             4             4             4             4             4 
-##         TFAP4        ZBTB18          ZEB1           DBP    EWSR1-FLI1 
-##             4             4             4             3             3 
-##           FOS         FOXF2   GATA1::TAL1          HSF1          JDP2 
-##             3             3             3             3             3 
-##          KLF5          MAFG          MAFK         MEF2D          NFYA 
-##             3             3             3             3             3 
-##        POU3F2        POU4F3          RORA         RUNX3         SCRT1 
-##             3             3             3             3             3 
-##        TCF7L2 TFAP2B(var.3)         TGIF2          USF2          XBP1 
-##             3             3             3             3             3 
-##          CTCF          E2F6          ESR2          ETV6         FOXC1 
-##             2             2             2             2             2 
-##         FOXG1           HLF         HNF1A        HOXA13          IRF9 
-##             2             2             2             2             2 
-##         MEF2B           MSC         NFKB2         NR2F1          NRF1 
-##             2             2             2             2             2</code></pre>
+<pre><code class="hljs">##             (Other)              ZNF263                IRF1 
+##                1620                1063                 621 
+##                CTCF                SPIC                 SP2 
+##                 503                 371                 353 
+##                EGR1        STAT1::STAT2               FOXP1 
+##                 328                 295                 240 
+##                SPI1               RREB1           MAF::NFE2 
+##                 231                 208                 161 
+##               PRDM1               MEF2C               CEBPA 
+##                 160                 150                 139 
+##                 SP1                 SP4                NRF1 
+##                 128                 125                 115 
+##              POU2F2          JUN(var.2)                KLF5 
+##                 113                  96                  96 
+##                 JUN                 YY1               FOSL1 
+##                  90                  88                  84 
+##               STAT1                ATF4               NR2C2 
+##                  80                  76                  76 
+##               ESRRB                CDX2              ZBTB18 
+##                  75                  74                  74 
+##               HNF4G               TBX15                NFE2 
+##                  72                  72                  70 
+##               MEF2A                NFYA           BATF::JUN 
+##                  68                  65                  63 
+##                RELA                PAX5 SMAD2::SMAD3::SMAD4 
+##                  63                  62                  62 
+##               FOSL2         JUND(var.2)                NFYB 
+##                  61                  61                  60 
+##                E2F6                JUND                USF2 
+##                  58                  56                  56 
+##               PLAG1               INSM1          EWSR1-FLI1 
+##                  55                  53                  52 
+##               FOXB1               NR2F1               STAT3 
+##                  52                  52                  52 
+##                ZEB1               FOXA1               RUNX3 
+##                  50                  49                  48 
+##                MAFF               FOXH1                MAFK 
+##                  47                  46                  46 
+##               NFIL3          RARA::RXRA          NFIC::TLX1 
+##                  46                  46                  45 
+##                REST              TCF7L2                DUX4 
+##                  45                  45                  44 
+##                 FOS               FOXP2               GATA2 
+##                  43                  41                  41 
+##         RORA(var.2)                 TEF                ESR2 
+##                  41                  41                  40 
+##               FOXC2       TFAP2B(var.2)       TFAP2B(var.3) 
+##                  40                  40                  40 
+##               NFKB2               NHLH1                RFX3 
+##                  39                  39                  38 
+##                 MSC              POU1F1                LEF1 
+##                  37                  36                  35 
+##                HSF4                IRF2               PROP1 
+##                  33                  33                  32 
+##                RFX5          TAL1::TCF3               FOXF2 
+##                  32                  32                  31 
+##         GATA1::TAL1                HSF1               KLF16 
+##                  31                  31                  31 
+##               MEF2B              SREBF2                PBX1 
+##                  31                  31                  30 
+##              POU4F1                EBF1                IRF7 
+##                  30                  29                  29 
+##               KLF14              POU4F3               TFAP4 
+##                  29                  29                  29 
+##                ELF3              POU3F3               GATA3 
+##                  28                  28                  27 
+##                JDP2 
+##                  27</code></pre>
 <p>The entrez gene summary is returned for all TFs found in matching, allowing us to easily check whether a TF seems like a plausible regulatory factor in a given cell type. For example, if we want to take a look at the function of IRF1, given that it has the most available binding sites in the monocyte associated pattern we can call</p>
 <pre class="r"><code class="hljs">motifResults$tfDescriptions[[<span class="hljs-number">7</span>]][which(motifResults$tfDescriptions[[<span class="hljs-number">7</span>]][,<span class="hljs-number">2</span>]==<span class="hljs-string">"IRF1"</span>), <span class="hljs-number">1</span>]</code></pre>
 <pre><code class="hljs">##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     summary
@@ -958,7 +938,7 @@ repmis::source_data(<span class="hljs-string">"https://github.com/FertigLab/ATAC
 ## [17] S4Vectors_0.22.1                       
 ## [18] Biobase_2.44.0                         
 ## [19] BiocGenerics_0.30.0                    
-## [20] ATACCoGAPS_0.90.8                      
+## [20] ATACCoGAPS_0.90.9                      
 ## [21] CoGAPS_3.5.13                          
 ## 
 ## loaded via a namespace (and not attached):
@@ -971,7 +951,7 @@ repmis::source_data(<span class="hljs-string">"https://github.com/FertigLab/ATAC
 ##  [13] foreach_1.4.7               htmltools_0.4.0            
 ##  [15] gdata_2.18.0                magrittr_1.5               
 ##  [17] memoise_1.1.0               JASPAR2016_1.12.0          
-##  [19] doParallel_1.0.15           cluster_2.1.0              
+##  [19] cluster_2.1.0               doParallel_1.0.15          
 ##  [21] ROCR_1.0-7                  limma_3.40.6               
 ##  [23] readr_1.3.1                 annotate_1.62.0            
 ##  [25] matrixStats_0.55.0          GeneOverlap_1.20.0         
@@ -983,50 +963,48 @@ repmis::source_data(<span class="hljs-string">"https://github.com/FertigLab/ATAC
 ##  [37] zeallot_0.1.0               iterators_1.0.12           
 ##  [39] glue_1.3.1                  registry_0.5-1             
 ##  [41] gtable_0.3.0                zlibbioc_1.30.0            
-##  [43] GetoptLong_0.1.7            DelayedArray_0.10.0        
-##  [45] R.cache_0.13.0              Rhdf5lib_1.6.3             
-##  [47] SingleCellExperiment_1.6.0  scales_1.0.0               
-##  [49] msigdbr_7.0.1               rngtools_1.4               
-##  [51] DBI_1.0.0                   bibtex_0.4.2               
-##  [53] miniUI_0.1.1.1              Rcpp_1.0.2                 
-##  [55] viridisLite_0.3.0           xtable_1.8-4               
-##  [57] progress_1.2.2              bit_1.1-14                 
-##  [59] DT_0.9                      htmlwidgets_1.5.1          
-##  [61] httr_1.4.1                  gplots_3.0.1.1             
-##  [63] RColorBrewer_1.1-2          pkgconfig_2.0.3            
-##  [65] XML_3.98-1.20               R.methodsS3_1.7.1          
-##  [67] tidyselect_0.2.5            rlang_0.4.1                
-##  [69] reshape2_1.4.3              later_1.0.0                
-##  [71] munsell_0.5.0               tools_3.6.1                
-##  [73] DirichletMultinomial_1.26.0 RSQLite_2.1.2              
-##  [75] projectR_1.0.0              evaluate_0.14              
-##  [77] stringr_1.4.0               fastmap_1.0.1              
-##  [79] yaml_2.2.0                  knitr_1.25                 
-##  [81] bit64_0.9-7                 caTools_1.17.1.2           
-##  [83] purrr_0.3.3                 KEGGREST_1.24.1            
-##  [85] RBGL_1.60.0                 mime_0.7                   
-##  [87] R.oo_1.22.0                 poweRlaw_0.70.2            
-##  [89] biomaRt_2.40.5              compiler_3.6.1             
-##  [91] curl_4.2                    plotly_4.9.0               
-##  [93] png_0.1-7                   tibble_2.1.3               
-##  [95] stringi_1.4.3               lattice_0.20-38            
-##  [97] CNEr_1.20.0                 Matrix_1.2-17              
-##  [99] vctrs_0.2.0                 pillar_1.4.2               
-## [101] lifecycle_0.1.0             BiocManager_1.30.9         
-## [103] GlobalOptions_0.1.1         data.table_1.12.4          
-## [105] bitops_1.0-6                httpuv_1.5.2               
-## [107] R6_2.4.0                    promises_1.1.0             
-## [109] KernSmooth_2.23-15          codetools_0.2-16           
-## [111] gtools_3.8.1                assertthat_0.2.1           
-## [113] seqLogo_1.50.0              rhdf5_2.28.1               
-## [115] SummarizedExperiment_1.14.1 pkgmaker_0.27              
-## [117] rjson_0.2.20                withr_2.1.2                
-## [119] GenomicAlignments_1.20.1    Rsamtools_2.0.3            
-## [121] GenomeInfoDbData_1.2.1      repmis_0.5                 
-## [123] hms_0.5.1                   motifmatchr_1.6.0          
-## [125] grid_3.6.1                  rGREAT_1.16.1              
-## [127] tidyr_1.0.0                 rmarkdown_1.16             
-## [129] shiny_1.4.0</code></pre>
+##  [43] DelayedArray_0.10.0         R.cache_0.13.0             
+##  [45] Rhdf5lib_1.6.3              SingleCellExperiment_1.6.0 
+##  [47] scales_1.0.0                msigdbr_7.0.1              
+##  [49] rngtools_1.4                DBI_1.0.0                  
+##  [51] bibtex_0.4.2                miniUI_0.1.1.1             
+##  [53] Rcpp_1.0.2                  viridisLite_0.3.0          
+##  [55] xtable_1.8-4                progress_1.2.2             
+##  [57] bit_1.1-14                  DT_0.9                     
+##  [59] htmlwidgets_1.5.1           httr_1.4.1                 
+##  [61] gplots_3.0.1.1              RColorBrewer_1.1-2         
+##  [63] pkgconfig_2.0.3             XML_3.98-1.20              
+##  [65] R.methodsS3_1.7.1           tidyselect_0.2.5           
+##  [67] rlang_0.4.1                 reshape2_1.4.3             
+##  [69] later_1.0.0                 munsell_0.5.0              
+##  [71] tools_3.6.1                 DirichletMultinomial_1.26.0
+##  [73] RSQLite_2.1.2               evaluate_0.14              
+##  [75] stringr_1.4.0               projectR_1.0.0             
+##  [77] fastmap_1.0.1               yaml_2.2.0                 
+##  [79] knitr_1.25                  bit64_0.9-7                
+##  [81] caTools_1.17.1.2            purrr_0.3.3                
+##  [83] KEGGREST_1.24.1             RBGL_1.60.0                
+##  [85] mime_0.7                    R.oo_1.22.0                
+##  [87] poweRlaw_0.70.2             biomaRt_2.40.5             
+##  [89] compiler_3.6.1              plotly_4.9.0               
+##  [91] curl_4.2                    png_0.1-7                  
+##  [93] tibble_2.1.3                stringi_1.4.3              
+##  [95] lattice_0.20-38             CNEr_1.20.0                
+##  [97] Matrix_1.2-17               vctrs_0.2.0                
+##  [99] pillar_1.4.2                lifecycle_0.1.0            
+## [101] BiocManager_1.30.9          data.table_1.12.4          
+## [103] bitops_1.0-6                httpuv_1.5.2               
+## [105] R6_2.4.0                    promises_1.1.0             
+## [107] KernSmooth_2.23-15          codetools_0.2-16           
+## [109] gtools_3.8.1                assertthat_0.2.1           
+## [111] seqLogo_1.50.0              rhdf5_2.28.1               
+## [113] SummarizedExperiment_1.14.1 pkgmaker_0.27              
+## [115] withr_2.1.2                 GenomicAlignments_1.20.1   
+## [117] Rsamtools_2.0.3             GenomeInfoDbData_1.2.1     
+## [119] hms_0.5.1                   repmis_0.5                 
+## [121] motifmatchr_1.6.0           grid_3.6.1                 
+## [123] tidyr_1.0.0                 rmarkdown_1.16             
+## [125] shiny_1.4.0</code></pre>
 </div>
 
 
