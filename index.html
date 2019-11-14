@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0102)file:///C:/Users/rossi/AppData/Local/Temp/RtmpIhbQJh/preview-37983e4e5eab.dir/ATACCoGAPS_Tutorial.html -->
+<!-- saved from url=(0089)file:///C:/Users/rossi/OneDrive/Documents/R/ATACCoGAPS/vignettes/ATACCoGAPS_Tutorial.html -->
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 
@@ -461,7 +461,10 @@ summary {
 
 <p>ATACCoGAPS can be installed from GitHub</p>
 <pre class="r"><code class="hljs"><span class="hljs-comment">#installing required Bioconductor packages</span>
-BiocManager::install(c(<span class="hljs-string">"CoGAPS"</span>, <span class="hljs-string">"GenomicRanges"</span>, <span class="hljs-string">"projectR"</span>, <span class="hljs-string">"TFBSTools"</span>, <span class="hljs-string">"GeneOverlap"</span>, <span class="hljs-string">"msigdbr"</span>, <span class="hljs-string">"motifmatchr"</span>, <span class="hljs-string">"chromVAR"</span>, <span class="hljs-string">"GenomicFeatures"</span>, <span class="hljs-string">"IRanges"</span>, <span class="hljs-string">"fgsea"</span>, <span class="hljs-string">"rGREAT"</span>, <span class="hljs-string">"Homo.sapiens"</span>, <span class="hljs-string">"Mus.musculus"</span>))
+BiocManager::install(c(<span class="hljs-string">"GenomicRanges"</span>, <span class="hljs-string">"projectR"</span>, <span class="hljs-string">"TFBSTools"</span>, <span class="hljs-string">"GeneOverlap"</span>, <span class="hljs-string">"msigdbr"</span>, <span class="hljs-string">"motifmatchr"</span>, <span class="hljs-string">"chromVAR"</span>, <span class="hljs-string">"GenomicFeatures"</span>, <span class="hljs-string">"IRanges"</span>, <span class="hljs-string">"fgsea"</span>, <span class="hljs-string">"rGREAT"</span>, <span class="hljs-string">"Homo.sapiens"</span>, <span class="hljs-string">"Mus.musculus"</span>))
+
+<span class="hljs-comment">#installing latest version of CoGAPS algorithm</span>
+devtools::install_github(<span class="hljs-string">"FertigLab/CoGAPS"</span>)
 
 <span class="hljs-comment">#installing ATACCoGAPS</span>
 devtools::install_github(<span class="hljs-string">"FertigLab/ATACCoGAPS"</span>)</code></pre>
